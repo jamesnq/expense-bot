@@ -41,8 +41,9 @@ class DetailsSheet:
         category = json_data["category"]
         note = json_data["note"]
         account = json_data["account"]
-        values = [date, amount, currency, trans_type, category, note, account]
-        return values
+        extracted_data = [date, amount, currency,
+                          trans_type, category, note, account]
+        return extracted_data
 
     def append_data_to_last_row(self, data):
         """
@@ -55,7 +56,7 @@ class DetailsSheet:
         # Call the Sheets API to append data
         try:
             response = self.details_sheet.append_row(values=data)
-            return {
+            response_message = json.dumps({
                 "status": "success",
                 "message": "✅ Data appended successfully",
                 "spreadsheetId": response["spreadsheetId"],
@@ -67,13 +68,15 @@ class DetailsSheet:
                     "updatedColumns": response["updates"]["updatedColumns"],
                     "updatedCells": response["updates"]["updatedCells"],
                 },
-            }
+            })
+            return response_message
         except Exception as e:
             logger.error("Error appending data to sheet: %s", e)
-            return {
+            response_message = json.dumps({
                 "status": "error",
                 "message": f"❌ Error appending data to sheet: {e.message}",
-            }
+            })
+            return response_message
 
 
 # details_sheet = SHEET.worksheet("Details")
