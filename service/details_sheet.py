@@ -19,15 +19,14 @@ load_dotenv()
 
 class DetailsSheet:
     def __init__(self):
-        self.SCOPE = [
-            "https://www.googleapis.com/auth/spreadsheets"
-        ]
+        self.SCOPE = ["https://www.googleapis.com/auth/spreadsheets"]
         self.CREDS = Credentials.from_service_account_file(
-            'creds.json', scopes=self.SCOPE)
+            "creds.json", scopes=self.SCOPE
+        )
         self.GSPREAD_CLIENT = gspread.authorize(self.CREDS)
-        self.SHEET_ID = os.getenv('SHEET_ID')
+        self.SHEET_ID = os.getenv("SHEET_ID")
         self.SHEET = self.GSPREAD_CLIENT.open_by_key(self.SHEET_ID)
-        self.SERVICE = build('sheets', 'v4', credentials=self.CREDS)
+        self.SERVICE = build("sheets", "v4", credentials=self.CREDS)
         self.details_sheet = self.SHEET.worksheet("Details")
 
     def import_data(self, json_data):
@@ -35,13 +34,13 @@ class DetailsSheet:
         logger.info("Received data: %s", json_data)
         if isinstance(json_data, str):
             json_data = json.loads(json_data)
-        date = json_data['date']
-        amount = json_data['amount']
-        currency = json_data['currency']
-        trans_type = json_data['trans_type']
-        category = json_data['category']
-        note = json_data['note']
-        account = json_data['account']
+        date = json_data["date"]
+        amount = json_data["amount"]
+        currency = json_data["currency"]
+        trans_type = json_data["trans_type"]
+        category = json_data["category"]
+        note = json_data["note"]
+        account = json_data["account"]
         values = [date, amount, currency, trans_type, category, note, account]
         return values
 
@@ -54,8 +53,27 @@ class DetailsSheet:
             data (list): A list of data to append to the last row.
         """
         # Call the Sheets API to append data
-        response = self.details_sheet.append_row(values=data)
-        return response
+        try:
+            response = self.details_sheet.append_row(values=data)
+            return {
+                "status": "success",
+                "message": "✅ Data appended successfully",
+                "spreadsheetId": response["spreadsheetId"],
+                "tableRange": response["tableRange"],
+                "updates": {
+                    "spreadsheetId": response["updates"]["spreadsheetId"],
+                    "updatedRange": response["updates"]["updatedRange"],
+                    "updatedRows": response["updates"]["updatedRows"],
+                    "updatedColumns": response["updates"]["updatedColumns"],
+                    "updatedCells": response["updates"]["updatedCells"],
+                },
+            }
+        except Exception as e:
+            logger.error("Error appending data to sheet: %s", e)
+            return {
+                "status": "error",
+                "message": f"❌ Error appending data to sheet: {e.message}",
+            }
 
 
 # details_sheet = SHEET.worksheet("Details")
