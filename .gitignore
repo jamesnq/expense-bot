@@ -1,3 +1,5 @@
 .env
 sheets
 creds.json
+ai\__pycache__\openai.cpython-312.pyc
+service\__pycache__\details_sheet.cpython-312.pyc
