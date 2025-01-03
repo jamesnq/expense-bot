@@ -6,3 +6,4 @@ openai
 python-dotenv
 python-telegram-bot
 requests
+flask

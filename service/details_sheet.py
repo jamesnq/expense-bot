@@ -30,20 +30,30 @@ class DetailsSheet:
         self.details_sheet = self.SHEET.worksheet("Details")
 
     def import_data(self, json_data):
-        # Ensure json_data is a dictionary
-        logger.info("Received data: %s", json_data)
-        if isinstance(json_data, str):
-            json_data = json.loads(json_data)
-        date = json_data["date"]
-        amount = json_data["amount"]
-        currency = json_data["currency"]
-        trans_type = json_data["trans_type"]
-        category = json_data["category"]
-        note = json_data["note"]
-        account = json_data["account"]
-        extracted_data = [date, amount, currency,
-                          trans_type, category, note, account]
-        return extracted_data
+        try:
+            if isinstance(json_data, str):
+                json_data = json.loads(json_data)
+            date = json_data["date"]
+            amount = json_data["amount"]
+            currency = json_data["currency"]
+            trans_type = json_data["trans_type"]
+            category = json_data["category"]
+            note = json_data["note"]
+            account = json_data["account"]
+            extracted_data = [
+                date,
+                amount,
+                currency,
+                trans_type,
+                category,
+                note,
+                account,
+            ]
+            return extracted_data
+        except Exception as e:
+            logger.error("Error processing message: %s", e)
+            extracted_data = {}
+            return extracted_data
 
     def append_data_to_last_row(self, data):
         """
@@ -56,26 +66,30 @@ class DetailsSheet:
         # Call the Sheets API to append data
         try:
             response = self.details_sheet.append_row(values=data)
-            response_message = json.dumps({
-                "status": "success",
-                "message": "✅ Data appended successfully",
-                "spreadsheetId": response["spreadsheetId"],
-                "tableRange": response["tableRange"],
-                "updates": {
-                    "spreadsheetId": response["updates"]["spreadsheetId"],
-                    "updatedRange": response["updates"]["updatedRange"],
-                    "updatedRows": response["updates"]["updatedRows"],
-                    "updatedColumns": response["updates"]["updatedColumns"],
-                    "updatedCells": response["updates"]["updatedCells"],
-                },
-            })
+            response_message = json.dumps(
+                {
+                    "status": "success",
+                    "message": "✅ Data appended successfully",
+                    "spreadsheetId": response["spreadsheetId"],
+                    "tableRange": response["tableRange"],
+                    "updates": {
+                        "spreadsheetId": response["updates"]["spreadsheetId"],
+                        "updatedRange": response["updates"]["updatedRange"],
+                        "updatedRows": response["updates"]["updatedRows"],
+                        "updatedColumns": response["updates"]["updatedColumns"],
+                        "updatedCells": response["updates"]["updatedCells"],
+                    },
+                }
+            )
             return response_message
         except Exception as e:
             logger.error("Error appending data to sheet: %s", e)
-            response_message = json.dumps({
-                "status": "error",
-                "message": f"❌ Error appending data to sheet: {e.message}",
-            })
+            response_message = json.dumps(
+                {
+                    "status": "error",
+                    "message": f"❌ Error appending data to sheet: {e.message}",
+                }
+            )
             return response_message
 
 
